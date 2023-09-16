@@ -74,6 +74,7 @@ jobs:
         cmake -L -S ./ -B build/ -DCMAKE_BUILD_TYPE=Release -G "${{ matrix.gen }}" -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }}
 
     - name: Build
+      run: |
         cmake --build build/ --config=Release --parallel 4
 
 
