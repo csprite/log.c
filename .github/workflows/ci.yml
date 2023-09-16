@@ -53,7 +53,7 @@ jobs:
         sudo apt-get update -y
         sudo apt-get install ${{ matrix.pkgs }} cmake ninja-build -y
 
-    - name: Generate Build Files (Linux)
+    - name: Generate Build Files & Build (Linux)
       if: ${{ matrix.os == 'ubuntu-22.04' }}
       run: |
         export CC=${{ matrix.cc }}
@@ -61,20 +61,15 @@ jobs:
         export CXXFLAGS=${{ matrix.flags }}
         export CFLAGS=${{ matrix.flags }}
         export LDFLAGS=${{ matrix.flags }}
-        cmake -L -S ./ -B build/ -DCMAKE_BUILD_TYPE=Release -G "Ninja"
+        make all GENERATOR=Ninja BUILD_TYPE=Release NUM_JOBS=4
 
-    - name: Generate Build Files (Windows)
+    - name: Generate Build Files & Build (Windows)
       if: ${{ matrix.os == 'windows-2022' }}
       run: |
-        cmake -L -S ./ -B build/ -DCMAKE_BUILD_TYPE=Release -G "${{ matrix.gen_cmake_name }}" -A "${{ matrix.arch }}" -T "ClangCL"
+        make all GENERATOR="${{ matrix.gen_cmake_name }}" BUILD_TYPE=Release NUM_JOBS=4 CMAKE_GEN_FLAGS='-A "${{ matrix.arch }}" -T "ClangCL"'
 
-    - name: Generate Build Files (MacOS)
+    - name: Generate Build Files & Build (MacOS)
       if: ${{ matrix.os == 'macos-12' }}
       run: |
-        cmake -L -S ./ -B build/ -DCMAKE_BUILD_TYPE=Release -G "${{ matrix.gen }}" -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }}
-
-    - name: Build
-      run: |
-        cmake --build build/ --config=Release --parallel 4
-
+        make all GENERATOR="${{ matrix.gen }}" BUILD_TYPE=Release NUM_JOBS=4 CMAKE_GEN_FLAGS='-DBUILD_APPLE_BUNDLE=ON -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }}'
 
