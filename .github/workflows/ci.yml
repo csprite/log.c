@@ -1,0 +1,79 @@
+name: ci
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-2022
+            arch: x64
+            gen_short_name: "vs17_2022"
+            gen_cmake_name: "Visual Studio 17 2022"
+
+          - os: windows-2022
+            arch: Win32
+            gen_short_name: "vs17_2022"
+            gen_cmake_name: "Visual Studio 17 2022"
+
+          - os: ubuntu-22.04
+            arch: x64
+            cc: gcc
+            cxx: g++
+            pkgs: gcc
+
+          - os: ubuntu-22.04
+            arch: x32
+            cc: gcc
+            cxx: g++
+            pkgs: gcc-multilib g++-multilib
+            flags: "-m32"
+
+          - os: macos-12
+            arch: x86_64
+            gen: Xcode
+
+          - os: macos-12
+            arch: arm64
+            gen: Xcode
+
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Install Deps (Linux)
+      if: ${{ matrix.os == 'ubuntu-22.04' }}
+      run: |
+        sudo dpkg --add-architecture i386
+        sudo apt-get update -y
+        sudo apt-get install ${{ matrix.pkgs }} cmake ninja-build -y
+
+    - name: Generate Build Files (Linux)
+      if: ${{ matrix.os == 'ubuntu-22.04' }}
+      run: |
+        export CC=${{ matrix.cc }}
+        export CXX=${{ matrix.cxx }}
+        export CXXFLAGS=${{ matrix.flags }}
+        export CFLAGS=${{ matrix.flags }}
+        export LDFLAGS=${{ matrix.flags }}
+        cmake -L -S ./ -B build/ -DCMAKE_BUILD_TYPE=Release -G "Ninja"
+
+    - name: Generate Build Files (Windows)
+      if: ${{ matrix.os == 'windows-2022' }}
+      run: |
+        cmake -L -S ./ -B build/ -DCMAKE_BUILD_TYPE=Release -G "${{ matrix.gen_cmake_name }}" -A "${{ matrix.arch }}" -T "ClangCL"
+
+    - name: Generate Build Files (MacOS)
+      if: ${{ matrix.os == 'macos-12' }}
+      run: |
+        cmake -L -S ./ -B build/ -DCMAKE_BUILD_TYPE=Release -G "${{ matrix.gen }}" -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }}
+
+    - name: Build
+        cmake --build build/ --config=Release --parallel 4
+
+
