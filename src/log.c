@@ -20,7 +20,7 @@
  * IN THE SOFTWARE.
  */
 
-#include "log.h"
+#include "log/log.h"
 
 #define MAX_CALLBACKS 32
 
