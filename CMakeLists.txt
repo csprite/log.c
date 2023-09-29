@@ -5,15 +5,12 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
-option(EnableColor "Enable Colored Output" ON)
-
+option(RXI_LOG_ENABLE_COLOR "Enable Colored Output" ON)
 project(rxi_log C CXX)
-
-file(GLOB SRC_FILES src/log.c)
-add_library(rxi_log STATIC ${SRC_FILES})
+add_library(rxi_log STATIC src/log.c)
 target_include_directories(rxi_log PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/)
 
-if(EnableColor)
+if(RXI_LOG_ENABLE_COLOR)
 	target_compile_definitions(rxi_log PUBLIC LOG_USE_COLOR)
 endif()
 
